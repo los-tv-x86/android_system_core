@@ -50,7 +50,12 @@ Modprobe::Modprobe(ModuleConfig config, bool use_blocklist)
       module_load_(std::move(config.module_load)),
       module_options_(std::move(config.module_options)),
       module_blocklist_(std::move(config.module_blocklist)),
+      module_deferred_aliases_(std::move(config.module_deferred)),
       blocklist_enabled(use_blocklist) {}
+
+void Modprobe::EnableDeferred(bool enable) {
+    deferred_enabled = enable;
+}
 
 std::vector<std::string> Modprobe::GetDependencies(const std::string& module) {
     auto it = module_deps_.find(module);
@@ -323,4 +328,15 @@ bool Modprobe::GetAllDependencies(const std::string& module,
         }
     }
     return true;
+}
+
+bool Modprobe::IsAliasDeferred(const std::string& alias_name)
+{
+    if (deferred_enabled) {
+        for (auto& deferred_alias: module_deferred_aliases_) {
+            if (fnmatch(deferred_alias.c_str(), alias_name.c_str(), 0) != 0) continue;
+            return true;
+        }
+    }
+    return false;
 }

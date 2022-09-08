@@ -37,6 +37,10 @@ class ModaliasHandler : public UeventHandler {
 
     void HandleUevent(const Uevent& uevent) override;
 
+    bool IsUeventDeferred(const Uevent& uevent) override;
+
+    void ColdbootDone() override;
+
     // Add a uevent to the dependency graph and Enqueue dependency-free modules to the thread pool.
     void EnqueueUevent(const Uevent& uevent, ThreadPool& thread_pool) override;
 

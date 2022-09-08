@@ -18,6 +18,7 @@
 #include <modprobe/utils.h>
 
 #include "pwd.h"
+#include <sys/utsname.h>
 
 #include <utility>
 
@@ -33,26 +34,53 @@ ModuleConfig ModuleConfig::Parse(const std::vector<std::string>& base_paths,
                                  const std::string& load_file) {
     ModuleConfig config;
     using namespace std::placeholders;
+    std::string release;
+    struct utsname uts;
+    uname(&uts);
+    release = uts.release;
 
     for (const auto& base_path : base_paths) {
+        const std::string release_base_path = base_path + "/" + release;
+
         auto alias_callback = std::bind(&ModuleConfig::ParseAliasCallback, &config, _1);
+        config.ParseCfg(release_base_path + "/modules.alias", alias_callback);
         config.ParseCfg(base_path + "/modules.alias", alias_callback);
+
+        auto dep_callback_release =
+                std::bind(&ModuleConfig::ParseDepCallback, &config, release_base_path, _1);
+        config.ParseCfg(release_base_path + "/modules.dep", dep_callback_release);
 
         auto dep_callback = std::bind(&ModuleConfig::ParseDepCallback, &config, base_path, _1);
         config.ParseCfg(base_path + "/modules.dep", dep_callback);
 
         auto softdep_callback = std::bind(&ModuleConfig::ParseSoftdepCallback, &config, _1);
+        config.ParseCfg(release_base_path + "/modules.softdep", softdep_callback);
         config.ParseCfg(base_path + "/modules.softdep", softdep_callback);
 
         auto load_callback = std::bind(&ModuleConfig::ParseLoadCallback, &config, _1);
+        config.ParseCfg(release_base_path + "/" + load_file, load_callback);
         config.ParseCfg(base_path + "/" + load_file, load_callback);
 
         auto options_callback = std::bind(&ModuleConfig::ParseOptionsCallback, &config, _1);
+        config.ParseCfg(release_base_path + "/modules.options", options_callback);
         config.ParseCfg(base_path + "/modules.options", options_callback);
 
         auto blocklist_callback = std::bind(&ModuleConfig::ParseBlocklistCallback, &config, _1);
+        config.ParseCfg(release_base_path + "/modules.blocklist", blocklist_callback);
         config.ParseCfg(base_path + "/modules.blocklist", blocklist_callback);
     }
+
+    auto load_callback = std::bind(&ModuleConfig::ParseLoadCallback, &config, _1);
+    config.ParseCfg("/system/etc/" + load_file, load_callback);
+    config.ParseCfg("/data/vendor/" + load_file, load_callback);
+
+    auto options_callback = std::bind(&ModuleConfig::ParseOptionsCallback, &config, _1);
+    config.ParseCfg("/system/etc/modules.options", options_callback);
+    config.ParseCfg("/data/vendor/modules.options", options_callback);
+
+    auto blocklist_callback = std::bind(&ModuleConfig::ParseBlocklistCallback, &config, _1);
+    config.ParseCfg("/system/etc/modules.blocklist", blocklist_callback);
+    config.ParseCfg("/data/vendor/modules.blocklist", blocklist_callback);
 
     config.ParseKernelCmdlineOptions();
     return config;
@@ -260,7 +288,7 @@ bool ModuleConfig::ParseBlocklistCallback(const std::vector<std::string>& args) 
     auto it = args.begin();
     const std::string& type = *it++;
 
-    if (type != "blocklist") {
+    if (type != "blocklist" && type != "deferred") {
         LOG(ERROR) << "non-blocklist line encountered in modules.blocklist";
         return false;
     }
@@ -276,7 +304,15 @@ bool ModuleConfig::ParseBlocklistCallback(const std::vector<std::string>& args) 
     if (canonical_name.empty()) {
         return false;
     }
-    this->module_blocklist.emplace(canonical_name);
+    if (type == "blocklist") {
+        this->module_blocklist.emplace(canonical_name);
+    } else if (type == "deferred") {
+        for (const auto& [alias, aliased_module] : this->module_aliases) {
+            if (CanonicalizeModulePath(aliased_module) == canonical_name) {
+                this->module_deferred.push_back(alias);
+            }
+        }
+    }
 
     return true;
 }

@@ -40,6 +40,8 @@ class UeventHandler {
 
     virtual void HandleUevent(const Uevent& uevent) = 0;
 
+    virtual bool IsUeventDeferred(const Uevent& uevent) { return false; }
+
     virtual void ColdbootDone() {}
 
     // Enqueue a uevent to the thread pool.

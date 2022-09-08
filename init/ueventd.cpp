@@ -234,7 +234,7 @@ int ueventd_main(int argc, char** argv) {
     });
 
     if (ueventd_configuration.enable_modalias_handling) {
-        std::vector<std::string> base_paths = {"/odm/lib/modules", "/vendor/lib/modules"};
+        std::vector<std::string> base_paths = {"/system/lib/modules", "/odm/lib/modules", "/vendor/lib/modules"};
         uevent_handlers.emplace_back(std::make_shared<ModaliasHandler>(base_paths));
     }
     uevent_handlers.emplace_back(std::move(device_handler));

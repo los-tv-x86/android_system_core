@@ -44,6 +44,8 @@ class Modprobe {
                             std::vector<std::string>* dependencies,
                             std::vector<std::string>* post_dependencies);
     int GetModuleCount() { return module_count_; }
+    bool IsAliasDeferred(const std::string& alias_name);
+    void EnableDeferred(bool enable);
     bool IsBlocklisted(const std::string& module_name);
 
   private:
@@ -62,10 +64,11 @@ class Modprobe {
     std::vector<std::string> module_load_;
     std::unordered_map<std::string, std::string> module_options_;
     std::set<std::string> module_blocklist_;
-
+    std::vector<std::string> module_deferred_aliases_;
     std::mutex module_loaded_lock_;
     std::unordered_set<std::string> module_loaded_ GUARDED_BY(module_loaded_lock_);
     std::unordered_set<std::string> module_loaded_paths_ GUARDED_BY(module_loaded_lock_);
     std::atomic_int module_count_ = 0;
     const bool blocklist_enabled = false;
+    bool deferred_enabled = false;
 };

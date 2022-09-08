@@ -43,6 +43,7 @@ class ModuleConfig {
     std::vector<std::string> module_load;
     std::unordered_map<std::string, std::string> module_options;
     std::set<std::string> module_blocklist;
+    std::vector<std::string> module_deferred;
 
   private:
     ModuleConfig() = default;
