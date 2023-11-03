@@ -356,7 +356,7 @@ void InitializeSubcontext() {
     }
 
     if (SelinuxGetVendorAndroidVersion() >= __ANDROID_API_P__) {
-        subcontext.reset(new Subcontext(std::vector<std::string>{"/vendor", "/odm"},
+        subcontext.reset(new Subcontext(std::vector<std::string>{"/vendor", "/system/vendor", "/odm"},
                                         std::vector<std::string>{"VENDOR", "ODM"}, kVendorContext));
     }
 }
