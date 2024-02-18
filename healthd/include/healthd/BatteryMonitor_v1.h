@@ -79,6 +79,9 @@ class BatteryMonitor {
     bool mBatteryDevicePresent;
     int mBatteryFixedCapacity;
     int mBatteryFixedTemperature;
+    int mBatteryFullEnergy;
+    int mBatteryEnergyCounter;
+    int mBatteryFullEnergyDesignCapacity;
     std::unique_ptr<aidl::android::hardware::health::HealthInfo> mHealthInfo;
 };
 
