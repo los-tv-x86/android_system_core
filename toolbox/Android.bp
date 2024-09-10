@@ -69,6 +69,7 @@ cc_binary {
     name: "toolbox",
     defaults: ["toolbox_binary_defaults"],
     vendor_ramdisk_available: true,
+    bootstrap: true,
 }
 
 cc_binary {
@@ -83,6 +84,7 @@ cc_binary {
     stem: "toolbox",
     vendor: true,
     defaults: ["toolbox_binary_defaults"],
+    bootstrap: true,
 }
 
 // This one is installed in the generic ramdisk, and can be executed during
