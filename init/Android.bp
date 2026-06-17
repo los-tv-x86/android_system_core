@@ -721,10 +721,6 @@ sh_binary {
 
 phony {
     name: "init_vendor",
-    required: select(soong_config_variable("ANDROID", "BOARD_USES_RECOVERY_AS_BOOT"), {
-        true: [],
-        default: ["init_first_stage"],
-    }),
 }
 
 aconfig_declarations {
