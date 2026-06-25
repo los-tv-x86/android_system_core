@@ -1343,9 +1343,8 @@ service init_dev_config ${ro.vendor.init_dev_config.path}
 service console /system/bin/sh
     class core
     console
-    disabled
-#   user shell
-    group shell log readproc
+    user root
+    group root shell log readproc
     seclabel u:r:shell:s0
     setenv HOSTNAME console
     shutdown critical
